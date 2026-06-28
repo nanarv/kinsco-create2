@@ -1,0 +1,3 @@
+# Grayscale Icons tinted via blend mode
+
+Icons need to support a customer-chosen color (via the color wheel) while keeping the shading/highlight detail intact, but the homemade art doesn't exist yet and the artist can't hand-color every Icon for every possible swatch. We're drawing each Icon once in grayscale with shading baked in, then applying the chosen color at runtime with `mix-blend-mode: multiply`, instead of producing a separately colored asset per Icon per swatch. This keeps the art pipeline to "one grayscale drawing per Icon" regardless of how many colors are offered, at the cost of the artist not having per-color control over how a tint actually looks on top of the shading.

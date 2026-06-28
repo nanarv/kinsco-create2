@@ -1,0 +1,3 @@
+# Cookies stored as structured data, not snapshots
+
+The public gallery needs to display every submitted Cookie indefinitely, but the homemade art is still placeholder and will be swapped for real assets later. We're storing each Cookie as structured JSON (its chosen Base/Mix-ins/Topping Icons, colors, and Shape) and re-rendering it live in the browser, rather than flattening it into a snapshot image at Submission time. This means swapping in real Icon art later automatically upgrades every past Cookie in the gallery, at the cost that removing or changing an Icon/color option can break or alter how old Cookies render.

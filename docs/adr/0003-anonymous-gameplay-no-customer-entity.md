@@ -1,0 +1,3 @@
+# Anonymous gameplay, no Customer entity
+
+The game needs an optional way to capture an email for future pop-up announcements, but there's no login and no reason to track who made which Cookie for a single pop-up table interaction. We're keeping gameplay fully anonymous: an Email Signup is a standalone capture with no foreign key to any Cookie, and there is no Customer entity anywhere in the system. This keeps the data model and privacy footprint minimal, at the cost that a future feature like "see your past cookies" or "email a customer about their specific cookie" would require retrofitting identity rather than just querying existing data.

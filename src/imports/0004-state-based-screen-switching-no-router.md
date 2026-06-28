@@ -1,0 +1,3 @@
+# State-based screen switching, no router
+
+The app needs to move a player between the build flow and the Gallery, but it's a single-session, QR-code-driven experience at a pop-up table with no need for shareable URLs or browser history. We're switching screens via simple in-memory state (e.g. `'build' | 'gallery'`) rather than introducing a routing library like React Router. This avoids a new dependency and routing setup for what is currently one screen toggle, at the cost that retrofitting real routes later — if more screens accumulate and shareable/bookmarkable URLs become valuable — will mean touching every screen-switch call site rather than adding routes incrementally.
