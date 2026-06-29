@@ -1,4 +1,4 @@
-import { useState, useId, useEffect } from "react"
+import { useState, useId, useEffect, useRef } from "react"
 import kinscoLogo from "../imports/Screenshot_2026-06-28_at_1.34.02_PM-jukebox-bg-removed.png"
 import heroGraphic from "../imports/Music___Entertainment_Mobile_Website_in_Black_and_White_Basic_Minimal_Style__1080_x_1180_px_.png"
 import buttonFrame from "../imports/Music___Entertainment_Mobile_Website_in_Black_and_White_Basic_Minimal_Style__1080_x_1180_px___4_.png"
@@ -552,45 +552,39 @@ function StepShape({ spec, setSpec }: { spec: CookieSpec; setSpec: React.Dispatc
 // Border animation component
 const BORDER_FRAMES = [previewBorder1, previewBorder2, previewBorder3, previewBorder4, previewBorder5, previewBorder6]
 
-function AnimatedBorder({ onAnimate }: { onAnimate?: number }) {
+function AnimatedBorder({ onAnimate, onComplete }: { onAnimate?: number; onComplete?: () => void }) {
   const [currentFrame, setCurrentFrame] = useState(0)
+  const onCompleteRef = useRef(onComplete)
+  onCompleteRef.current = onComplete
 
   useEffect(() => {
     if (!onAnimate || onAnimate === 0) return
 
-    console.log('Animation triggered:', onAnimate)
-    
-    // Reset to frame 1 (index 1, which is border2) when animation triggers
     setCurrentFrame(1)
-    
     let frameIndex = 1
     const interval = setInterval(() => {
       frameIndex++
-      console.log('Frame:', frameIndex)
       if (frameIndex >= BORDER_FRAMES.length) {
-        // Animation complete, return to border1
-        console.log('Animation complete, returning to frame 0')
         setCurrentFrame(0)
         clearInterval(interval)
+        onCompleteRef.current?.()
       } else {
         setCurrentFrame(frameIndex)
       }
-    }, 100) // Changed to 100ms per frame for more visible animation
+    }, 300)
 
     return () => clearInterval(interval)
   }, [onAnimate])
 
-  console.log('Rendering border frame:', currentFrame, 'Image:', BORDER_FRAMES[currentFrame])
-
   return (
-    <img 
-      src={BORDER_FRAMES[currentFrame]} 
-      alt="" 
+    <img
+      src={BORDER_FRAMES[currentFrame]}
+      alt=""
       style={{
         position: "absolute",
-        inset: -4,
-        width: "calc(100% + 8px)",
-        height: "calc(100% + 8px)",
+        inset: 0,
+        width: "100%",
+        height: "100%",
         pointerEvents: "none",
         zIndex: 2,
       }}
@@ -602,12 +596,25 @@ function StepDough({ spec, setSpec, onDoughSelect }: { spec: CookieSpec; setSpec
   const leftColors = DOUGH_COLORS.slice(0, 5)
   const rightColors = DOUGH_COLORS.slice(5, 10)
   const [animationTrigger, setAnimationTrigger] = useState(0)
-  
+  const [selectedColor, setSelectedColor] = useState<string | null>(null)
+  const pendingColorRef = useRef<string | null>(null)
+
   const handleColorClick = (color: string) => {
-    setSpec((p) => ({ ...p, base: { ...p.base, color } }))
+    pendingColorRef.current = color
+    setSelectedColor(color)
     onDoughSelect()
-    setAnimationTrigger(prev => prev + 1) // Trigger/restart animation
+    setAnimationTrigger(prev => prev + 1)
   }
+
+  const handleAnimationComplete = () => {
+    if (pendingColorRef.current) {
+      setSpec((p) => ({ ...p, base: { ...p.base, color: pendingColorRef.current! } }))
+      pendingColorRef.current = null
+      setSelectedColor(null)
+    }
+  }
+
+  const activeButtonColor = selectedColor ?? spec.base.color
   
   return (
     <div className="flex flex-col gap-3">
@@ -616,7 +623,7 @@ function StepDough({ spec, setSpec, onDoughSelect }: { spec: CookieSpec; setSpec
         {/* Left column - 5 buttons stacked vertically */}
         <div className="flex flex-col gap-2">
           {leftColors.map((item) => {
-            const isActive = spec.base.color === item.color
+            const isActive = activeButtonColor === item.color
             return (
               <button
                 key={item.color}
@@ -694,7 +701,7 @@ function StepDough({ spec, setSpec, onDoughSelect }: { spec: CookieSpec; setSpec
             }}
           />
           {/* Animated border overlay */}
-          <AnimatedBorder onAnimate={animationTrigger} />
+          <AnimatedBorder onAnimate={animationTrigger} onComplete={handleAnimationComplete} />
           {/* Cookie preview */}
           <svg width="120" height="120" viewBox="0 0 300 300" style={{ display: "block", position: "relative", zIndex: 1 }}>
             <ellipse cx="150" cy="150" rx="120" ry="100" fill={spec.base.color} />
@@ -706,7 +713,7 @@ function StepDough({ spec, setSpec, onDoughSelect }: { spec: CookieSpec; setSpec
         {/* Right column - 5 buttons stacked vertically */}
         <div className="flex flex-col gap-2">
           {rightColors.map((item) => {
-            const isActive = spec.base.color === item.color
+            const isActive = activeButtonColor === item.color
             return (
               <button
                 key={item.color}
@@ -1017,7 +1024,7 @@ function BuildScreen({ spec, setSpec, onDone, onBack }: BuildScreenProps) {
 
       {/* For step 0, center everything vertically */}
       {step === 0 ? (
-        <div className="flex-1 flex items-center justify-center px-6" style={{ marginTop: 80 }}>
+        <div className="flex items-center justify-center px-6" style={{ marginTop: 40 }}>
           <div
             className="w-full rounded-3xl px-6 py-5"
             style={{
@@ -1080,7 +1087,7 @@ function BuildScreen({ spec, setSpec, onDone, onBack }: BuildScreenProps) {
         </>
       )}
 
-      <div className="flex items-center justify-between w-full px-2 pb-8 gap-3" style={step === 0 ? { marginTop: 'auto' } : {}}>
+      <div className="flex items-center justify-between w-full px-2 pb-8 gap-3" style={step === 0 ? { marginTop: 16 } : {}}>
         <button
           onClick={goPrev}
           className="px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-80"
