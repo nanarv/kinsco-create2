@@ -401,9 +401,9 @@ const BASE_OPTIONS: { id: BaseId; label: string; emoji: string }[] = [
 ]
 
 const MIXIN_OPTIONS: { id: MixinId; label: string }[] = [
-  { id: "chip", label: "Choc Chip" },
-  { id: "sprinkle", label: "Sprinkle" },
-  { id: "nut", label: "Walnut" },
+  { id: "chip", label: "drops" },
+  { id: "sprinkle", label: "sprinkles" },
+  { id: "nut", label: "balls" },
 ]
 
 const TOPPING_OPTIONS: { id: ToppingId; label: string; emoji: string }[] = [
@@ -413,7 +413,7 @@ const TOPPING_OPTIONS: { id: ToppingId; label: string; emoji: string }[] = [
 ]
 
 const DEFAULT_SPEC: CookieSpec = {
-  shape: "",
+  shape: "circle",
   base: { id: "plain", color: "#D9A15A" },
   mixins: [],
   topping: null,
@@ -506,8 +506,8 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 // ─── Build steps ─────────────────────────────────────────────────────────────
 
-const STEP_LABELS = ["Dough", "Shape", "Mix-ins", "Topping", "Publish"] as const
-type StepIndex = 0 | 1 | 2 | 3 | 4
+const STEP_LABELS = ["Dough", "Mix-ins", "Topping", "Publish"] as const
+type StepIndex = 0 | 1 | 2 | 3
 const TOTAL_STEPS = STEP_LABELS.length
 
 // ─── Per-step panels ──────────────────────────────────────────────────────────
@@ -776,7 +776,7 @@ function StepDough({ spec, setSpec, onDoughSelect }: { spec: CookieSpec; setSpec
         <NameInput
           value={spec.base.name ?? ""}
           onChange={(v) => setSpec((p) => ({ ...p, base: { ...p.base, name: v } }))}
-          placeholder="e.g. Matcha dough…"
+          placeholder="........................................"
         />
       </div>
     </div>
@@ -983,7 +983,6 @@ function BuildScreen({ spec, setSpec, onDone, onBack }: BuildScreenProps) {
 
   const stepControls = [
     <StepDough key="dough" spec={spec} setSpec={setSpec} onDoughSelect={() => setHasSelectedDough(true)} />,
-    <StepShape key="shape" spec={spec} setSpec={setSpec} />,
     <StepMixins key="mixins" spec={spec} setSpec={setSpec} />,
     <StepTopping key="topping" spec={spec} setSpec={setSpec} />,
     <StepPublish key="publish" onSubmit={(email) => {
@@ -992,39 +991,12 @@ function BuildScreen({ spec, setSpec, onDone, onBack }: BuildScreenProps) {
     }} />,
   ]
 
-  // Show dough blob only on step 0 if dough selected, show cookie on other steps
-  const showDoughOnly = step === 0
-  const showPreview = !showDoughOnly || hasSelectedDough
-
   return (
     <div className="flex-1 flex flex-col overflow-y-auto" style={{ maxWidth: 480, margin: "0 auto", width: "100%" }}>
-      <div className="flex items-center gap-2 pt-5 pb-2 justify-center">
-        {STEP_LABELS.map((label, i) => (
-          <button
-            key={i}
-            onClick={() => setStep(i as StepIndex)}
-            className="flex flex-col items-center gap-1 group"
-            aria-label={`Go to step ${label}`}
-          >
-            <span
-              className="block rounded-full transition-all"
-              style={{
-                width: i === step ? 24 : 8,
-                height: 8,
-                background: i < step ? "#b11d24" : i === step ? "#b11d24" : "rgba(177,29,36,0.2)",
-              }}
-            />
-          </button>
-        ))}
-      </div>
-
-      <p className="text-xs font-extrabold text-muted-foreground uppercase tracking-widest mb-4 text-center">
-        Step {step + 1} of {TOTAL_STEPS} — {STEP_LABELS[step]}
-      </p>
 
       {/* For step 0, center everything vertically */}
       {step === 0 ? (
-        <div className="flex items-center justify-center px-6" style={{ marginTop: 40 }}>
+        <div className="flex items-center justify-center px-6" style={{ marginTop: 100 }}>
           <div
             className="w-full rounded-3xl px-6 py-5"
             style={{
@@ -1053,23 +1025,7 @@ function BuildScreen({ spec, setSpec, onDone, onBack }: BuildScreenProps) {
                 justifyContent: "center",
               }}
             >
-              {step === 1 ? (
-                // Step 1: Show blob if no shape selected, otherwise show cookie
-                spec.shape === "" ? (
-                  <svg width="240" height="240" viewBox="0 0 300 300" style={{ display: "block" }}>
-                    {/* Dough blob shape */}
-                    <ellipse cx="150" cy="150" rx="120" ry="100" fill={spec.base.color} />
-                    <ellipse cx="150" cy="150" rx="120" ry="100" fill="rgba(0,0,0,0.1)" opacity="0.3" style={{ mixBlendMode: "multiply" }} />
-                    {/* Highlight */}
-                    <ellipse cx="120" cy="120" rx="40" ry="30" fill="rgba(255,255,255,0.3)" />
-                  </svg>
-                ) : (
-                  <CookieCanvas spec={spec} size={240} />
-                )
-              ) : (
-                // Step 2+: Show cookie
-                <CookieCanvas spec={spec} size={240} />
-              )}
+              <CookieCanvas spec={spec} size={240} />
             </div>
           )}
 
@@ -1087,33 +1043,57 @@ function BuildScreen({ spec, setSpec, onDone, onBack }: BuildScreenProps) {
         </>
       )}
 
-      <div className="flex items-center justify-between w-full px-2 pb-8 gap-3" style={step === 0 ? { marginTop: 16 } : {}}>
+      <div className="flex items-center justify-center w-full px-2 gap-6" style={step === 0 ? { marginTop: 16 } : {}}>
         <button
           onClick={goPrev}
-          className="px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-80"
-          style={{
-            background: "#f5efeb",
-            border: "1.5px solid rgba(174,38,46,0.2)",
-            color: "#a7a19e",
-          }}
+          className="transition-all hover:opacity-80 active:scale-95"
+          style={{ background: "none", border: "none", padding: 0 }}
         >
-          ← {isFirst ? "Home" : "Back"}
+          <img
+            src={isFirst ? "/Home-button.png" : "/Back-button.png"}
+            alt={isFirst ? "Home" : "Back"}
+            style={{ height: 48, width: "auto", display: "block" }}
+          />
         </button>
 
         {!isLast && (
           <button
             onClick={goNext}
-            className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={{
-              background: "#b11d24",
-              color: "#f5efeb",
-              boxShadow: "0 3px 12px rgba(174,38,46,0.3)",
-              fontFamily: "Arial, sans-serif",
-            }}
+            className="transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{ background: "none", border: "none", padding: 0 }}
           >
-            Next →
+            <img
+              src="/Next-button.png"
+              alt="Next"
+              style={{ height: 48, width: "auto", display: "block" }}
+            />
           </button>
         )}
+      </div>
+
+      {/* Step progress — bottom */}
+      <div className="flex flex-col items-center gap-2 pt-3 pb-6">
+        <div className="flex items-center gap-2">
+          {STEP_LABELS.map((label, i) => (
+            <button
+              key={i}
+              onClick={() => setStep(i as StepIndex)}
+              aria-label={`Go to step ${label}`}
+            >
+              <span
+                className="block rounded-full transition-all"
+                style={{
+                  width: i === step ? 24 : 8,
+                  height: 8,
+                  background: i < step ? "#b11d24" : i === step ? "#b11d24" : "rgba(177,29,36,0.2)",
+                }}
+              />
+            </button>
+          ))}
+        </div>
+        <p className="text-xs font-extrabold text-muted-foreground uppercase tracking-widest">
+          Step {step + 1} of {TOTAL_STEPS} — {STEP_LABELS[step]}
+        </p>
       </div>
     </div>
   )
@@ -1123,8 +1103,7 @@ function BuildScreen({ spec, setSpec, onDone, onBack }: BuildScreenProps) {
 
 function HomeScreen({ onBuild, onGallery }: { onBuild: () => void; onGallery: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-6 px-6 pt-10 pb-12 w-full" style={{ marginTop: 96 }}>
-      <img src={kinscoLogo} alt="Kinsco" style={{ height: 100, width: "auto", marginBottom: -80, marginTop: -25, marginLeft: 8 }} />
+    <div className="flex flex-col items-center gap-6 px-6 pt-4 pb-12 w-full">
       <img
         src={heroGraphic}
         alt="Kinsco cookie graphic"
@@ -1186,16 +1165,10 @@ export default function App() {
       className="flex flex-col bg-background"
       style={{ fontFamily: "Arial, sans-serif", minHeight: "100%", width: "100%" }}
     >
-      {screen !== "home" && screen !== "done" && (
-        <div className="flex items-center px-5 pt-4">
-          <button
-            onClick={() => setScreen("home")}
-            className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ← Home
-          </button>
-        </div>
-      )}
+      {/* Logo header — every screen */}
+      <div className="flex justify-center pt-4 pb-2" style={{ marginTop: 80 }}>
+        <img src={kinscoLogo} alt="Kinsco" style={{ height: 52, width: "auto" }} />
+      </div>
 
       {screen === "home" && (
         <HomeScreen onBuild={() => { setSpec(DEFAULT_SPEC); setScreen("build") }} onGallery={() => setScreen("gallery")} />
@@ -1249,11 +1222,11 @@ export default function App() {
       <div className="sm:hidden min-h-screen bg-background relative">
         {content}
         {/* Border overlay */}
-        <img 
-          src={borderFrame} 
-          alt="" 
-          className="pointer-events-none fixed inset-0 w-full h-full" 
-          style={{ zIndex: 9999, objectFit: 'fill' }}
+        <img
+          src={borderFrame}
+          alt=""
+          className="pointer-events-none fixed inset-0 w-full h-full"
+          style={{ zIndex: 9999, objectFit: 'fill', filter: 'sepia(1) hue-rotate(320deg) saturate(8) brightness(0.38)' }}
         />
       </div>
 
@@ -1270,11 +1243,11 @@ export default function App() {
             {content}
           </div>
           {/* Border overlay for desktop */}
-          <img 
-            src={borderFrame} 
-            alt="" 
-            className="pointer-events-none absolute inset-0 w-full h-full" 
-            style={{ zIndex: 9999, borderRadius: 40, objectFit: 'fill' }}
+          <img
+            src={borderFrame}
+            alt=""
+            className="pointer-events-none absolute inset-0 w-full h-full"
+            style={{ zIndex: 9999, borderRadius: 40, objectFit: 'fill', filter: 'sepia(1) hue-rotate(320deg) saturate(8) brightness(0.38)' }}
           />
         </div>
       </div>
